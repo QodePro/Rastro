@@ -1,8 +1,3 @@
-// section v1.0.0
-// Copyright 2025 OverAI
-// Developed by OverAI (tk)
-// Licensed under MIT (LICENSE)
-
 (function() {  // <-- Inicio de la IIFE -->
     
     /*----------------------------------------
