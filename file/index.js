@@ -48,43 +48,22 @@
         let direction = clickCount++ % 2 ? "right" : "left";
     
         // Verificar si la url coincide con algún template
-        let found = false;
+
         for (const main of mains) {
             const path = main.getAttribute("path") || "";
             
             if (path === url) {
                 html = main.innerHTML;
-                found = true;
                 break;
             } else if (path === "main" && !found) {
-                // Para rutas principales o fallback
                 html += main.innerHTML;
             }
-        }
-    
-        // Si no encontró la ruta, mostrar error 404
-        if (!found) {
-            html = `<h1>Error 404</h1><p>Página no encontrada: ${url}</p>`;
         }
     
         element.innerHTML = html;
         element.className = direction;
         lockedTab = url;
-    };
-    
-    // Para cargar la pestaña inicial
-    window.addEventListener('load', tabs);
-    window.addEventListener('popstate', tabs);
-    
-    // Ejemplo para navegar internamente sin recargar
-    document.body.addEventListener('click', e => {
-        if (e.target.matches('a[data-link]')) {
-            e.preventDefault();
-            const href = e.target.getAttribute('href');
-            history.pushState(null, null, href);
-            tabs();
-        }
-    });     
+    };    
 
     /*----------------------------------------
     -- Configuración de Formulario (PayPal)
