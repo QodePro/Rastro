@@ -22,47 +22,75 @@
             url: origin
         })[o] || '';
     };
-
+    
     /*----------------------------------------
     ---- Renderizado de Pestañas/Secciones
     ----------------------------------------*/
-
+    
     const element = document.getElementById('root');
     const mains = document.querySelectorAll('template[path]');
-
+    
     let clickCount = 0;
     let lockedTab = null;
-
+    
     const tabs = () => {
         if (!element) return;
     
-        const url = lockedTab ? (rout("tab") || "/") : "/";
+        // Obtener la ruta actual o usar "/" por defecto
+        let url = lockedTab ? (rout("tab") || "") : "";
+    
+        // Asegurar que url inicie con "/"
+        if (!url.startsWith('/')) url = '/' + url;
+    
         if (lockedTab === url) return;
     
         let html = "";
         let direction = clickCount++ % 2 ? "right" : "left";
     
+        // Verificar si la url coincide con algún template
+        let found = false;
         for (const main of mains) {
             const path = main.getAttribute("path") || "";
-        
-            if (path === `(${url})`) {
+            
+            if (path === url) {
                 html = main.innerHTML;
+                found = true;
                 break;
-            } else if (url === path || path === "main") {
+            } else if (path === "main" && !found) {
+                // Para rutas principales o fallback
                 html += main.innerHTML;
             }
+        }
+    
+        // Si no encontró la ruta, mostrar error 404
+        if (!found) {
+            html = `<h1>Error 404</h1><p>Página no encontrada: ${url}</p>`;
         }
     
         element.innerHTML = html;
         element.className = direction;
         lockedTab = url;
-    };    
+    };
+    
+    // Para cargar la pestaña inicial
+    window.addEventListener('load', tabs);
+    window.addEventListener('popstate', tabs);
+    
+    // Ejemplo para navegar internamente sin recargar
+    document.body.addEventListener('click', e => {
+        if (e.target.matches('a[data-link]')) {
+            e.preventDefault();
+            const href = e.target.getAttribute('href');
+            history.pushState(null, null, href);
+            tabs();
+        }
+    });     
 
     /*----------------------------------------
     -- Configuración de Formulario (PayPal)
     ----------------------------------------*/
 
-    const setupForm = ({ title, price }) => {
+    const setupForm = () => {
         const $ = id => document.getElementById(id);
     
         const nameInput = $('pay__name');
@@ -107,6 +135,7 @@
             if (formName) formName.value = '';
             if (formEmail) formEmail.value = '';
             if (formTextarea) formTextarea.value = '';
+            if (submitBtn) submitBtn.value = '';
         };
     
         if (buttonInput) {
@@ -516,10 +545,6 @@
         test: (cb) => cb(dase)
     };
 
-    window.onpopstate = function() {
-        tabs?.(); cargar();
-    };
-
     /*----------------------------------------
     Lógica Principal de Renderizado y Eventos
     ----------------------------------------*/
@@ -573,10 +598,10 @@
         
                     link.onclick = () => {
                         if (to) {
-                            history.pushState({}, '', '/' + to.replace(/^\//, ''));
+                            history.pushState(null, '', '/' + to.replace(/^\//, ''));
                             tabs(), cargar();
                         } else if (url) {
-                            history.pushState({}, '', '/' + url);
+                            history.pushState(null, '', '/' + url);
                             url.endsWith('.html') ? (tabs(), cargar()) : reload();
                         }
                     };
@@ -605,5 +630,13 @@
 
         reload()
     } 
+
+    window.onpopstate = function() {
+        tabs?.(); cargar();
+    };
+
+    window.addEventListener('popstate', tabs, cargar);
+    window.addEventListener('hashchange', tabs, cargar);
+    window.addEventListener('load', tabs, cargar);
 
 })(); // <-- Fin de la IIFE
